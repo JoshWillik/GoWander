@@ -122,8 +122,8 @@ func draw(){
 }
 func shouldRender() bool{
     if int(time.Since(lastDraw) * time.Second) >= 1000/fps{
-        f.Println("rendering for the ", numRendered, " time")
-        numRendered ++
+        //f.Println("rendering for the ", numRendered, " time")
+        numRendered++
         lastDraw = time.Now()
         return true
     }
