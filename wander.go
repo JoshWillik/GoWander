@@ -9,6 +9,9 @@ import (
 )
 
 var (
+    numRendered = 0
+    lastDraw = time.Now()
+    fps = 60
     seconds = time.Now()
     attr gl.AttribLocation
 )
@@ -45,7 +48,9 @@ func main(){
 
     setup()
     for !window.ShouldClose() {
-        draw()
+        if shouldRender(){
+            draw()
+        }
         animate()
         window.SwapBuffers()
         glfw.PollEvents()
@@ -114,6 +119,16 @@ func reshape(window *glfw.Window, width, height int){
 func draw(){
     gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
     gl.DrawArrays(gl.TRIANGLES, 0, 3)
+}
+func shouldRender() bool{
+    if int(time.Since(lastDraw) * time.Second) >= 1000/fps{
+        f.Println("rendering for the ", numRendered, " time")
+        numRendered ++
+        lastDraw = time.Now()
+        return true
+    }
+
+    return false;
 }
 
 func animate(){
