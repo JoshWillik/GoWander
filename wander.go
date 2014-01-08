@@ -10,6 +10,7 @@ import (
 
 var (
     seconds = time.Now()
+    attr gl.AttribLocation
 )
 
 func main(){
@@ -40,6 +41,8 @@ func main(){
     defer prog.Delete()
     prog.Use()
 
+    attr = prog.GetAttribLocation("offset")
+
     setup()
     for !window.ShouldClose() {
         draw()
@@ -50,7 +53,6 @@ func main(){
 
 }
 func setup(){
-    //gl.PointSize(40.0)
 }
 func setupProgram()(prog gl.Program){
     vertexSource := `
@@ -65,7 +67,7 @@ func setupProgram()(prog gl.Program){
         );
         
         void main(){
-            gl_Position = vertecies[gl_VertexID];
+            gl_Position = vertecies[gl_VertexID] + offset;
         }`
     fragmentSource := `
         #version 430 core
@@ -121,8 +123,7 @@ func animate(){
         float32(math.Sin(now)),
         float32(math.Cos(now)),
         0.0,0.0}
-
-    gl.Vertex4fv(&offset)
+    attr.Attrib4fv(&offset)
 
     red := gl.GLclampf(math.Sin(now) * 0.25 + 0.75)
     blue := gl.GLclampf(math.Cos(now) * 0.25 + 0.75)
