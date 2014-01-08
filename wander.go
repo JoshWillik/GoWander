@@ -40,10 +40,6 @@ func main(){
     defer prog.Delete()
     prog.Use()
 
-    arr := getVertexArray()
-    defer arr.Delete()
-    arr.Bind()
-
     setup()
     for !window.ShouldClose() {
         draw()
@@ -96,10 +92,6 @@ func setupProgram()(prog gl.Program){
 
     return
 }
-func getVertexArray()(arr gl.VertexArray){
-    arr = gl.GenVertexArray()
-    return
-}
 
 func key(window *glfw.Window, k glfw.Key, s int, action glfw.Action, mods glfw.ModifierKey) {
     if action != glfw.Press {
@@ -125,10 +117,12 @@ func draw(){
 func animate(){
     now := float64(time.Since(seconds))
 
-//    offset = []float64{
-//        math.Sin(now),
-//        math.Cos(now),
-//        0.0,0.0}
+    offset := [4]float32{
+        float32(math.Sin(now)),
+        float32(math.Cos(now)),
+        0.0,0.0}
+
+    gl.Vertex4fv(&offset)
 
     red := gl.GLclampf(math.Sin(now) * 0.25 + 0.75)
     blue := gl.GLclampf(math.Cos(now) * 0.25 + 0.75)
