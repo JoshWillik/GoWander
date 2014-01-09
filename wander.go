@@ -6,6 +6,7 @@ import (
     glfw "github.com/go-gl/glfw3"
     "math"
     "time"
+    "runtime"
 )
 
 var (
@@ -58,6 +59,7 @@ func main(){
 
 }
 func setup(){
+    runtime.LockOSThread()
 }
 func setupProgram()(prog gl.Program){
     vertexSource := `
@@ -122,7 +124,7 @@ func draw(){
 }
 func shouldRender() bool{
     if int(time.Since(lastDraw) * time.Second) >= 1000/fps{
-        //f.Println("rendering for the ", numRendered, " time")
+        f.Println("rendering for the ", numRendered, " time")
         numRendered++
         lastDraw = time.Now()
         return true
