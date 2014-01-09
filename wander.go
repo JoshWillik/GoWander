@@ -123,8 +123,7 @@ func draw(){
     gl.DrawArrays(gl.TRIANGLES, 0, 3)
 }
 func shouldRender() bool{
-    if int(time.Since(lastDraw) * time.Second) >= 1000/fps{
-        f.Println("rendering for the ", numRendered, " time")
+    if int(time.Since(lastDraw) / time.Millisecond) >= 1000/fps{
         numRendered++
         lastDraw = time.Now()
         return true
@@ -134,7 +133,7 @@ func shouldRender() bool{
 }
 
 func animate(){
-    now := float64(time.Since(seconds))
+    now := float64(time.Since(seconds)) / float64(time.Second)
 
     offset := [4]float32{
         float32(math.Sin(now)),
