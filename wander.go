@@ -14,7 +14,8 @@ var (
     lastDraw = time.Now()
     fps = 60
     seconds = time.Now()
-    attr gl.AttribLocation
+    position gl.AttribLocation
+    color gl.AttribLocation
 )
 
 func main(){
@@ -45,7 +46,8 @@ func main(){
     defer prog.Delete()
     prog.Use()
 
-    attr = prog.GetAttribLocation("offset")
+    position = prog.GetAttribLocation("offset")
+    color  = prog.GetAttribLocation("color")
 
     setup()
     for !window.ShouldClose() {
@@ -60,29 +62,48 @@ func main(){
 }
 func setup(){
     runtime.LockOSThread()
+    colorOffset := [4]float32{
+        1.0,
+        0.0,
+        0.0,
+        0.0 }
+    color.Attrib4fv(&colorOffset)
 }
 func setupProgram()(prog gl.Program){
     vertexSource := `
         #version 430 core
         
         layout (location = 0) in vec4 offset;
+        layout (location = 1) in vec4 color;
 
         const vec4 vertecies[3] = vec4[3](
             vec4(0.25, 0.5, 0.5, 1.0),
             vec4(-0.25, 0.5, 0.5, 1.0),
             vec4(-0.25, -0.5, 0.5, 1.0)
         );
-        
+
+        out COLOR
+        {
+            vec4 color;
+        } out_color;
+
         void main(){
             gl_Position = vertecies[gl_VertexID] + offset;
+
+            out_color.color = color;
         }`
     fragmentSource := `
         #version 430 core
         
+        in COLOR
+        {
+            vec4 color;
+        } in_color;
+
         out vec4 color;
 
         void main(){
-            color = vec4(1.0, 0.0, 0.0, 0.0); // red, blue, green, ??
+            color = in_color.color;
         }`
     vert, frag := gl.CreateShader(gl.VERTEX_SHADER), gl.CreateShader(gl.FRAGMENT_SHADER)
     defer vert.Delete()
@@ -139,7 +160,8 @@ func animate(){
         float32(math.Sin(now)),
         float32(math.Cos(now)),
         0.0,0.0}
-    attr.Attrib4fv(&offset)
+    position.Attrib4fv(&offset)
+
 
     red := gl.GLclampf(math.Sin(now) * 0.25 + 0.75)
     blue := gl.GLclampf(math.Cos(now) * 0.25 + 0.75)
