@@ -2,7 +2,8 @@ package main
 
 import (
     f "fmt"
-    "github.com/go-gl/gl"
+    //"github.com/go-gl/gl"
+    "github.com/JoshWillik/gl"
     glfw "github.com/go-gl/glfw3"
     "math"
     "time"
@@ -62,12 +63,14 @@ func main(){
 }
 func setup(){
     runtime.LockOSThread()
+    gl.PolygonMode(gl.FRONT_AND_BACK, gl.LINE)
     colorOffset := [4]float32{
         1.0,
         0.0,
         0.0,
         0.0 }
     color.Attrib4fv(&colorOffset)
+    f.Println(gl.GetString(gl.VERSION))
 }
 func setupProgram()(prog gl.Program){
     vertexSource := `
@@ -105,17 +108,64 @@ func setupProgram()(prog gl.Program){
         void main(){
             color = in_color.color;
         }`
-    vert, frag := gl.CreateShader(gl.VERTEX_SHADER), gl.CreateShader(gl.FRAGMENT_SHADER)
+    tesselationControlSource := `
+        #version 430 core
+
+        layout (vertices = 3) out;
+        
+        void main(void){
+            if(gl_InvocationID == 0){
+                gl_TessLevelInner[0] = 5.0;
+                gl_TessLevelOuter[0] = 5.0;
+                gl_TessLevelOuter[1] = 5.0;
+                gl_TessLevelOuter[2] = 5.0;
+            }
+            gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
+        }
+    `
+    tesselationEvaluationSource := `
+        #version 430 core
+
+        layout (triangles) in;
+
+        void main(void){
+            gl_Position = 
+                (gl_TessCoord.x * gl_in[0].gl_Position) +
+                (gl_TessCoord.y * gl_in[1].gl_Position) +
+                (gl_TessCoord.z * gl_in[2].gl_Position);
+        }`
+
+    vert := gl.CreateShader(gl.VERTEX_SHADER)
+    frag := gl.CreateShader(gl.FRAGMENT_SHADER)
+    tessControl := gl.CreateShader(gl.TESS_CONTROL_SHADER)
+    tessEval := gl.CreateShader(gl.TESS_EVALUATION_SHADER)
+
     defer vert.Delete()
     defer frag.Delete()
+    defer tessControl.Delete()
+    defer tessEval.Delete()
+
     vert.Source(vertexSource)
     frag.Source(fragmentSource)
+    tessControl.Source(tesselationControlSource)
+    tessEval.Source(tesselationEvaluationSource)
+
     vert.Compile()
     frag.Compile()
+    tessControl.Compile()
+    tessEval.Compile()
+
+    f.Println(vert.GetInfoLog())
+    f.Println(frag.GetInfoLog())
+    f.Println(tessControl.GetInfoLog())
+    f.Println(tessEval.GetInfoLog())
 
     prog = gl.CreateProgram()
+
     prog.AttachShader(vert)
     prog.AttachShader(frag)
+    prog.AttachShader(tessControl)
+    prog.AttachShader(tessEval)
     prog.Link()
     prog.Use()
     f.Println(prog.GetInfoLog())
@@ -166,7 +216,7 @@ func animate(){
     red := gl.GLclampf(math.Sin(now) * 0.25 + 0.75)
     blue := gl.GLclampf(math.Cos(now) * 0.25 + 0.75)
     green := gl.GLclampf(time.Since(seconds))
-    _ = green;
+    _, _, _ = green, blue, red;
 
-    gl.ClearColor(red, blue, 0.2, 0.0)
+    gl.ClearColor(0.0,0.0, 0.0, 0.0)
 }
